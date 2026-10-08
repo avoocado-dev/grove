@@ -26,9 +26,9 @@ export function ImbalanceCards({ items, showDepartment, selectedKey, onSelect }:
   return (
     <section className="highlights" aria-labelledby="highlights-title">
       <h2 id="highlights-title" className="highlights__title">
-        Largest NV / PA imbalances{' '}
+        Categories with more SKUs located only in one location than the other{' '}
         <span className="muted">
-          · by share of stocked SKUs, categories with at least {MIN_STOCKED_SKUS} stocked SKUs
+          · ranked by share of stocked SKUs, at least {MIN_STOCKED_SKUS} stocked
         </span>
       </h2>
       <div className="highlights__cards">
@@ -36,6 +36,7 @@ export function ImbalanceCards({ items, showDepartment, selectedKey, onSelect }:
           const { counts, stocked } = item.summary;
           const key = imbalanceKey(item);
           const selected = key === selectedKey;
+          const [more, fewer] = item.gap > 0 ? ['NV', 'PA'] : ['PA', 'NV'];
           return (
             <button
               key={key}
@@ -51,10 +52,7 @@ export function ImbalanceCards({ items, showDepartment, selectedKey, onSelect }:
                 title={`${counts.PA_ONLY} only in PA, ${counts.NV_ONLY} only in NV, of ${stocked} stocked SKUs`}
               />
               <span className="card__note">
-                {Math.abs(item.gap)} more only in {item.gap > 0 ? 'NV' : 'PA'}
-                <span className="muted">
-                  {Math.round(Math.abs(item.share) * 100)}% of {stocked} stocked
-                </span>
+                {Math.abs(item.gap)} more SKUs are located only in {more} than only in {fewer}
               </span>
             </button>
           );
