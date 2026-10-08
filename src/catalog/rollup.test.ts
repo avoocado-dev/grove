@@ -39,7 +39,17 @@ describe('isInScope', () => {
 describe('summarize', () => {
   it('counts each availability bucket and derives stocked', () => {
     const summary = summarize([sku({ nv: 1, pa: 1 }), sku({ nv: 1 }), sku({ nv: 1 }), sku({ pa: 1 }), sku()]);
-    expect(summary).toEqual({ counts: { BOTH: 1, NV_ONLY: 2, PA_ONLY: 1, NONE: 1 }, stocked: 4, total: 5 });
+    expect(summary).toEqual({
+      counts: { BOTH: 1, NV_ONLY: 2, PA_ONLY: 1, NONE: 1 },
+      stocked: 4,
+      total: 5,
+      units: { NV: 3, PA: 2 },
+    });
+  });
+
+  it('sums units on hand per location, ignoring negative quantities', () => {
+    const summary = summarize([sku({ nv: 40, pa: 10 }), sku({ nv: -34, pa: 5 }), sku({ nv: 2 })]);
+    expect(summary.units).toEqual({ NV: 42, PA: 15 });
   });
 });
 

@@ -1,9 +1,9 @@
 // Aggregating SKUs up the department > category > class hierarchy.
 
-import { availabilityOf } from './availability.ts';
+import { availabilityOf, unitsOnHand } from './availability.ts';
 import type { Availability } from './availability.ts';
 import { LEVELS } from './types.ts';
-import type { Level, Product, Sku } from './types.ts';
+import type { Level, Location, Product, Sku } from './types.ts';
 
 /** Label for SKUs missing a hierarchy value, so they stay visible and totals reconcile. */
 export const UNASSIGNED = '(Unassigned)';
@@ -16,6 +16,8 @@ export interface Summary {
   /** SKUs with units in at least one location. */
   stocked: number;
   total: number;
+  /** Units on hand per location, summed over the SKUs. */
+  units: Record<Location, number>;
 }
 
 export interface GroupRow {
@@ -38,8 +40,13 @@ export function skusUnder(skus: readonly Sku[], path: DrillPath): Sku[] {
 
 export function summarize(skus: readonly Sku[]): Summary {
   const counts: Record<Availability, number> = { BOTH: 0, NV_ONLY: 0, PA_ONLY: 0, NONE: 0 };
-  for (const sku of skus) counts[availabilityOf(sku)]++;
-  return { counts, stocked: skus.length - counts.NONE, total: skus.length };
+  const units: Record<Location, number> = { NV: 0, PA: 0 };
+  for (const sku of skus) {
+    counts[availabilityOf(sku)]++;
+    units.NV += unitsOnHand(sku, 'NV');
+    units.PA += unitsOnHand(sku, 'PA');
+  }
+  return { counts, stocked: skus.length - counts.NONE, total: skus.length, units };
 }
 
 /** One row per distinct label at `level`, in first-seen order (sorting is a view concern). */

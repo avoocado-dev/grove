@@ -4,11 +4,16 @@ A drill-down table for finding where stock diverges between the Pennsylvania and
 **Department → Category → Class → Products (with variants)**. The product level lists one row per variant
 (product, variant, vendor, ID) with a bar showing how its units split between the two warehouses.
 
-Each hierarchy level shows **Stocked SKUs**, **Stocked in Both**, and **Stocked only in NV or PA**. The last
-column is a diverging bar: PA-only grows left from the centre and NV-only grows right, each with its count at the tip.
-Bar length is the share of the row's stocked SKUs, so a lopsided small category stands out as clearly as a
-lopsided large one. Because the counts are printed in the table, it also works as the accessible text version
-of the chart.
+Each hierarchy level shows, in order: **Stocked SKUs**, the **PA/NV stock split** chart, **Stocked in Both**, and the
+**Stock only in PA/NV split** chart.
+
+- **PA/NV stock split**: a 100% bar of the row's units on hand, split between PA and NV, with each location's units
+  at its end. Every row's bar is the same length, so the split stays comparable however much stock the row holds.
+- **Stock only in PA/NV split**: a diverging bar. PA-only SKUs grow left from the centre and NV-only grow right, each
+  with its count at the tip. Bar length is the share of the row's stocked SKUs, so a lopsided small category stands
+  out as clearly as a lopsided large one.
+
+Because the values are printed beside the bars, the table also works as the accessible text version of the charts.
 
 Cards above the table surface the **5 most imbalanced categories**: across the whole catalog on All departments,
 and within the department once you're inside one. They're ranked by |NV-only − PA-only| ÷ stocked SKUs, counting

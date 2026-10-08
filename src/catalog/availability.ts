@@ -1,6 +1,6 @@
 // How a SKU's raw data is interpreted. Each business rule is a single decision here.
 
-import type { Sku } from './types.ts';
+import type { Location, Sku } from './types.ts';
 
 export type Availability = 'BOTH' | 'NV_ONLY' | 'PA_ONLY' | 'NONE';
 
@@ -16,6 +16,11 @@ export function availabilityOf(sku: Sku): Availability {
   if (nv) return 'NV_ONLY';
   if (pa) return 'PA_ONLY';
   return 'NONE';
+}
+
+/** Units on hand at a location; negative quantities count as nothing on hand. */
+export function unitsOnHand(sku: Sku, location: Location): number {
+  return Math.max(sku.quantity[location], 0);
 }
 
 /** Has units on hand in at least one location. */

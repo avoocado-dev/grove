@@ -1,3 +1,4 @@
+import { unitsOnHand } from '../catalog/availability.ts';
 import type { ProductGroup } from '../catalog/rollup.ts';
 import type { Sku } from '../catalog/types.ts';
 import { DivergingBar, shareOf } from './DivergingBar.tsx';
@@ -43,12 +44,11 @@ export function ProductTable({ groups }: { groups: ProductGroup[] }) {
 /** Where this variant's units on hand sit: bar length is each location's share of the total. */
 function UnitsBar({ sku }: { sku: Sku }) {
   const { NV, PA } = sku.quantity;
-  // Negative quantities count as nothing on hand.
-  const total = Math.max(NV, 0) + Math.max(PA, 0);
+  const [nv, pa] = [unitsOnHand(sku, 'NV'), unitsOnHand(sku, 'PA')];
   return (
     <DivergingBar
-      pa={{ value: PA, length: shareOf(Math.max(PA, 0), total) }}
-      nv={{ value: NV, length: shareOf(Math.max(NV, 0), total) }}
+      pa={{ value: PA, length: shareOf(pa, nv + pa) }}
+      nv={{ value: NV, length: shareOf(nv, nv + pa) }}
       title={`${PA} units in PA, ${NV} units in NV`}
     />
   );

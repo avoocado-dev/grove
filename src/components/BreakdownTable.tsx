@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { GroupRow, Summary } from '../catalog/rollup.ts';
 import type { Level } from '../catalog/types.ts';
 import { DivergingBar, shareOf } from './DivergingBar.tsx';
+import { SplitBar } from './SplitBar.tsx';
 
 type SortKey = 'label' | 'stocked' | 'BOTH';
 
@@ -78,10 +79,11 @@ export function BreakdownTable({ level, rows, highlightedLabel, onSelect }: Brea
           <th className="shrink" aria-sort={ariaSort('stocked')}>
             {sortButton('stocked', 'Stocked SKUs')}
           </th>
-          <th className="shrink" aria-sort={ariaSort('BOTH')}>
+          <th className="split-col">PA/NV stock split</th>
+          <th className="num shrink" aria-sort={ariaSort('BOTH')}>
             {sortButton('BOTH', 'Stocked in Both')}
           </th>
-          <th className="diverging-col">Only in NV/PA split</th>
+          <th className="diverging-col">Stock only in PA/NV split</th>
         </tr>
       </thead>
       <tbody>
@@ -113,7 +115,10 @@ function SummaryCells({ summary, scaleMax }: { summary: Summary; scaleMax: numbe
   return (
     <>
       <td className="tabular shrink">{stocked.toLocaleString()}</td>
-      <td className="tabular shrink">{counts.BOTH.toLocaleString()}</td>
+      <td className="split-col">
+        <SplitBar pa={summary.units.PA} nv={summary.units.NV} />
+      </td>
+      <td className="num shrink">{counts.BOTH.toLocaleString()}</td>
       <td className="diverging-col">
         <DivergingBar
           pa={{ value: counts.PA_ONLY, length: scale(shareOf(counts.PA_ONLY, stocked)) }}
