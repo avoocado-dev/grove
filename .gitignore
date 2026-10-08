@@ -1,0 +1,7 @@
+node_modules
+dist
+.DS_Store
+
+# Catalog data is confidential: neither the raw export nor the derived file is committed.
+data/
+public/catalog.json

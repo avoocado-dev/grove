@@ -1,0 +1,303 @@
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --text: #0b0b0b;
+  --text-secondary: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --hover: rgba(11, 11, 11, 0.04);
+  --link: #1c5cab;
+  /* Location identity: categorical slots 1 and 2, validated for CVD separation. */
+  --nv: #2a78d6;
+  --pa: #eb6834;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --text: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --hover: rgba(255, 255, 255, 0.05);
+    --link: #86b6ef;
+    --nv: #3987e5;
+    --pa: #d95926;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.row-link {
+  color: var(--link);
+  text-align: left;
+}
+
+.row-link:hover {
+  text-decoration: underline;
+}
+
+/* Breadcrumbs on the left, chart legend on the right, above the table. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 24px;
+  margin-bottom: 12px;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  color: var(--text-secondary);
+}
+
+/* Breadcrumbs */
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumbs li + li::before {
+  content: '›';
+  margin-right: 6px;
+  color: var(--muted);
+}
+
+.breadcrumbs [aria-current] {
+  font-weight: 600;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+}
+
+th,
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--grid);
+  text-align: left;
+}
+
+thead th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Every column but the bar shrinks to its content; the bar column takes the remaining width. */
+.breakdown .shrink {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: var(--hover);
+}
+
+thead th {
+  vertical-align: middle;
+}
+
+.sort-button {
+  display: inline-flex;
+  vertical-align: middle;
+  align-items: center;
+  gap: 4px;
+}
+
+.sort-indicator {
+  font-size: 9px;
+  min-width: 9px;
+}
+
+th.num .sort-button {
+  flex-direction: row-reverse;
+}
+
+/* Only in NV/PA: one column; two equal halves keep the bars' center aligned across rows. */
+.diverging-col {
+  --count-w: 3em;
+  text-align: center;
+}
+
+.diverging {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Outer padding reserves room for the count beside the longest bar. */
+.diverging__half {
+  display: flex;
+  height: 10px;
+}
+
+/* 1px each side = the 2px surface gap where the halves meet. */
+.diverging__half--left {
+  justify-content: flex-end;
+  margin-right: 1px;
+  padding-left: var(--count-w);
+}
+
+.diverging__half--right {
+  margin-left: 1px;
+  padding-right: var(--count-w);
+}
+
+.diverging__fill {
+  position: relative;
+  height: 100%;
+}
+
+/* Square at the center, 4px rounded data end. */
+.diverging__fill--filled {
+  min-width: 2px;
+}
+
+.diverging__half--left .diverging__fill {
+  border-radius: 4px 0 0 4px;
+}
+
+.diverging__half--right .diverging__fill {
+  border-radius: 0 4px 4px 0;
+}
+
+/* The count rides the bar's tip (or sits at the center when there is no bar). */
+.diverging__count {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.diverging__half--left .diverging__count {
+  right: 100%;
+  padding-right: 8px;
+}
+
+.diverging__half--right .diverging__count {
+  left: 100%;
+  padding-left: 8px;
+}
+
+.fill--nv {
+  background: var(--nv);
+}
+
+.fill--pa {
+  background: var(--pa);
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+.swatch--dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0;
+}
+
+/* Product view */
+.product-row th {
+  padding-top: 14px;
+  font-weight: 600;
+  border-bottom-color: transparent;
+}
+
+.product-row .muted {
+  font-weight: 400;
+}
+
+.variant-row td:first-child {
+  padding-left: 28px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag .swatch--dot:last-of-type {
+  margin-right: 2px;
+}
+
+.footnote {
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .breakdown .shrink {
+    white-space: normal;
+  }
+  th,
+  td {
+    padding: 8px 6px;
+  }
+}
