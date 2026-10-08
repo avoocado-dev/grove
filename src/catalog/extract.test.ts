@@ -51,15 +51,14 @@ describe('extractCatalog', () => {
           {
             id: 'v1',
             title: 'Refill',
-            price: '6.99',
             metafields: [
               ...hierarchy('Dish Care', 'Dishwashing', 'Dish Soap Refills'),
               { namespace: 'metafield', key: 'item_type', value: '_inventoryItem' },
               { namespace: 'locationInventory', key: 'available_quantities', value: '{"NV": 3, "PA": 0}' },
             ],
           },
-          { id: 'v2', title: 'Bottle', price: null, metafields: hierarchy('Dish Care ', 'Dishwashing', 'Dish Soap') },
-          { id: 'v3', title: 'Loose', price: '1', metafields: null },
+          { id: 'v2', title: 'Bottle', metafields: hierarchy('Dish Care ', 'Dishwashing', 'Dish Soap') },
+          { id: 'v3', title: 'Loose', metafields: null },
         ],
       },
     ];
@@ -72,13 +71,11 @@ describe('extractCatalog', () => {
       id: 'v1',
       productId: 'p1',
       title: 'Refill',
-      price: 6.99,
       itemType: '_inventoryItem',
       hierarchy: { department: 'Dish Care', category: 'Dishwashing', class: 'Dish Soap Refills' },
       quantity: { NV: 3, PA: 0 },
     });
     expect(skus[1]!.hierarchy.department).toBe('Dish Care');
-    expect(skus[1]!.price).toBeNull();
     expect(skus[2]!.hierarchy).toEqual({ department: null, category: null, class: null });
   });
 });

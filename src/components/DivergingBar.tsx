@@ -1,52 +1,46 @@
-import type { Summary } from '../catalog/rollup.ts';
+export function shareOf(part: number, total: number): number {
+  return total > 0 ? part / total : 0;
+}
 
-export function shareOf(count: number, stocked: number): number {
-  return stocked > 0 ? count / stocked : 0;
+interface Side {
+  /** Shown at the bar's tip. */
+  value: number;
+  /** Fraction (0–1) of the half the bar fills. */
+  length: number;
 }
 
 interface DivergingBarProps {
-  summary: Summary;
-  /** The share that fills a whole half; shared across the table so rows are comparable. */
-  scaleMax: number;
+  pa: Side;
+  nv: Side;
+  title: string;
 }
 
 /**
- * PA-only SKUs grow left from the center, NV-only grow right, each with its
- * count at the bar's tip. Length is the share of the row's stocked SKUs, so a
- * lopsided small group stands out as clearly as a lopsided large one.
+ * PA grows left from the center, NV grows right, each with its value at the
+ * bar's tip. Callers decide what length means (a share of stocked SKUs, a share
+ * of units on hand), so the same mark reads the same way across views.
  */
-export function DivergingBar({ summary, scaleMax }: DivergingBarProps) {
-  const { stocked, counts } = summary;
+export function DivergingBar({ pa, nv, title }: DivergingBarProps) {
   return (
-    <div
-      className="diverging"
-      title={`${counts.PA_ONLY} only in PA, ${counts.NV_ONLY} only in NV, of ${stocked} stocked SKUs`}
-    >
+    <div className="diverging" title={title}>
       <span className="diverging__half diverging__half--left">
-        <Bar count={counts.PA_ONLY} stocked={stocked} scaleMax={scaleMax} fill="fill--pa" />
+        <Bar {...pa} fill="fill--pa" />
       </span>
       <span className="diverging__half diverging__half--right">
-        <Bar count={counts.NV_ONLY} stocked={stocked} scaleMax={scaleMax} fill="fill--nv" />
+        <Bar {...nv} fill="fill--nv" />
       </span>
     </div>
   );
 }
 
-interface BarProps {
-  count: number;
-  stocked: number;
-  scaleMax: number;
-  fill: string;
-}
-
-function Bar({ count, stocked, scaleMax, fill }: BarProps) {
-  const width = scaleMax > 0 ? (shareOf(count, stocked) / scaleMax) * 100 : 0;
+function Bar({ value, length, fill }: Side & { fill: string }) {
+  const filled = value > 0 && length > 0;
   return (
     <span
-      className={count > 0 ? `diverging__fill diverging__fill--filled ${fill}` : 'diverging__fill'}
-      style={{ width: `${width}%` }}
+      className={filled ? `diverging__fill diverging__fill--filled ${fill}` : 'diverging__fill'}
+      style={{ width: `${filled ? Math.min(length, 1) * 100 : 0}%` }}
     >
-      <span className={count === 0 ? 'diverging__count muted' : 'diverging__count'}>{count.toLocaleString()}</span>
+      <span className={value > 0 ? 'diverging__count' : 'diverging__count muted'}>{value.toLocaleString()}</span>
     </span>
   );
 }
@@ -57,11 +51,11 @@ export function DivergingLegend() {
     <div className="legend">
       <span>
         <span className="swatch fill--pa" />
-        Only PA
+        PA
       </span>
       <span>
         <span className="swatch fill--nv" />
-        Only NV
+        NV
       </span>
     </div>
   );

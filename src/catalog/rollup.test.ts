@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { availabilityOf, isInScope } from './availability.ts';
+import { availabilityOf, isInScope, isStocked } from './availability.ts';
 import { UNASSIGNED, groupByLevel, groupByProduct, skusUnder, summarize } from './rollup.ts';
 import type { Sku } from './types.ts';
 
@@ -9,7 +9,6 @@ function sku(overrides: Partial<Sku> & { nv?: number; pa?: number; path?: (strin
     id: 'v',
     productId: 'p',
     title: 'Default',
-    price: 1,
     itemType: '_inventoryItem',
     hierarchy: { department: path[0] ?? null, category: path[1] ?? null, class: path[2] ?? null },
     quantity: { NV: nv, PA: pa },
@@ -27,6 +26,15 @@ describe('availabilityOf', () => {
 
   it('treats negative units as not stocked', () => {
     expect(availabilityOf(sku({ nv: -34, pa: 5 }))).toBe('PA_ONLY');
+  });
+});
+
+describe('isStocked', () => {
+  it('is true when any location has units', () => {
+    expect(isStocked(sku({ nv: 3 }))).toBe(true);
+    expect(isStocked(sku({ pa: 1 }))).toBe(true);
+    expect(isStocked(sku({ nv: 0, pa: 0 }))).toBe(false);
+    expect(isStocked(sku({ nv: -5, pa: 0 }))).toBe(false);
   });
 });
 

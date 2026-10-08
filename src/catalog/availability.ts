@@ -18,6 +18,11 @@ export function availabilityOf(sku: Sku): Availability {
   return 'NONE';
 }
 
+/** Has units on hand in at least one location. */
+export function isStocked(sku: Sku): boolean {
+  return availabilityOf(sku) !== 'NONE';
+}
+
 /**
  * Item types left out of every count:
  * - _service / _otherCharge: virtual goods (e.g. "Protect the Rainforest – 10 acres"), never in a warehouse.

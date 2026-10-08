@@ -12,7 +12,6 @@ interface RawMetafield {
 interface RawVariant {
   id: string;
   title: string;
-  price: string | null;
   metafields: RawMetafield[] | null;
 }
 
@@ -117,12 +116,10 @@ export function extractCatalog(rawProducts: RawProduct[]): Catalog {
     };
     for (const variant of product.variants ?? []) {
       const raw = rawHierarchy(variant);
-      const price = variant.price === null ? NaN : Number(variant.price);
       skus.push({
         id: variant.id,
         productId: product.id,
         title: variant.title,
-        price: Number.isFinite(price) ? price : null,
         itemType: metafield(variant.metafields, 'metafield', 'item_type'),
         hierarchy: {
           department: canonicalize.department(raw.department),

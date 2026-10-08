@@ -24,7 +24,6 @@ export interface Sku {
   id: string;
   productId: string;
   title: string;
-  price: number | null;
   /** metafield.item_type, e.g. "_inventoryItem", "_kit", "_service". */
   itemType: string | null;
   hierarchy: Hierarchy;

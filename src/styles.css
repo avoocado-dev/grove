@@ -70,6 +70,16 @@ button {
   text-decoration: underline;
 }
 
+/* Row names read as plain text; the whole row is the click target. */
+.row-label {
+  text-align: left;
+}
+
+.row-label:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
 /* Breadcrumbs on the left, chart legend on the right, above the table. */
 .toolbar {
   display: flex;
@@ -128,8 +138,8 @@ thead th {
   white-space: nowrap;
 }
 
-/* Every column but the bar shrinks to its content; the bar column takes the remaining width. */
-.breakdown .shrink {
+/* Columns shrink to their content; the bar column takes the remaining width. */
+.shrink {
   width: 1%;
   white-space: nowrap;
 }
@@ -255,36 +265,19 @@ th.num .sort-button {
   vertical-align: -1px;
 }
 
-.swatch--dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 0;
-}
-
 /* Product view */
-.product-row th {
-  padding-top: 14px;
+.product-col {
+  min-width: 180px;
   font-weight: 600;
-  border-bottom-color: transparent;
 }
 
-.product-row .muted {
-  font-weight: 400;
+thead .product-col {
+  font-weight: 600;
 }
 
-.variant-row td:first-child {
-  padding-left: 28px;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.tag .swatch--dot:last-of-type {
-  margin-right: 2px;
+/* Give the chart a fixed share so long product names wrap instead of squeezing it. */
+.products .diverging-col {
+  width: 30%;
 }
 
 .footnote {
@@ -293,7 +286,7 @@ th.num .sort-button {
 }
 
 @media (max-width: 640px) {
-  .breakdown .shrink {
+  .shrink {
     white-space: normal;
   }
   th,

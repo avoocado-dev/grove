@@ -83,7 +83,7 @@ export function BreakdownTable({ level, rows, onSelect }: BreakdownTableProps) {
           // The button gives keyboard access; its click bubbles to the row handler.
           <tr key={row.label} className="clickable" onClick={() => onSelect(row.label)}>
             <td className="shrink">
-              <button className="row-link">{row.label}</button>
+              <button className="row-label">{row.label}</button>
             </td>
             <SummaryCells summary={row.summary} scaleMax={scaleMax} />
           </tr>
@@ -94,12 +94,18 @@ export function BreakdownTable({ level, rows, onSelect }: BreakdownTableProps) {
 }
 
 function SummaryCells({ summary, scaleMax }: { summary: Summary; scaleMax: number }) {
+  const { counts, stocked } = summary;
+  const scale = (share: number) => (scaleMax > 0 ? share / scaleMax : 0);
   return (
     <>
-      <td className="tabular shrink">{summary.stocked.toLocaleString()}</td>
-      <td className="tabular shrink">{summary.counts.BOTH.toLocaleString()}</td>
+      <td className="tabular shrink">{stocked.toLocaleString()}</td>
+      <td className="tabular shrink">{counts.BOTH.toLocaleString()}</td>
       <td className="diverging-col">
-        <DivergingBar summary={summary} scaleMax={scaleMax} />
+        <DivergingBar
+          pa={{ value: counts.PA_ONLY, length: scale(shareOf(counts.PA_ONLY, stocked)) }}
+          nv={{ value: counts.NV_ONLY, length: scale(shareOf(counts.NV_ONLY, stocked)) }}
+          title={`${counts.PA_ONLY} only in PA, ${counts.NV_ONLY} only in NV, of ${stocked} stocked SKUs`}
+        />
       </td>
     </>
   );

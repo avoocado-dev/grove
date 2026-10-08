@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EXCLUDED_ITEM_TYPES, isInScope } from './catalog/availability.ts';
+import { EXCLUDED_ITEM_TYPES, isInScope, isStocked } from './catalog/availability.ts';
 import { groupByLevel, groupByProduct, skusUnder } from './catalog/rollup.ts';
 import { LEVELS } from './catalog/types.ts';
 import type { Catalog } from './catalog/types.ts';
@@ -26,15 +26,18 @@ function Explorer({ catalog }: { catalog: Catalog }) {
   const inScope = useMemo(() => catalog.skus.filter(isInScope), [catalog]);
   const skus = useMemo(() => skusUnder(inScope, path), [inScope, path]);
   const level = LEVELS[path.length];
+  // The product view lists only stocked variants, so its rows match the "Stocked SKUs" count it was opened from.
+  const productSkus = level ? [] : skus.filter(isStocked);
+  const isEmpty = level ? skus.length === 0 : productSkus.length === 0;
 
   return (
     <>
       <div className="toolbar">
         <Breadcrumbs path={path} onNavigate={navigate} />
-        {level && skus.length > 0 && <DivergingLegend />}
+        {!isEmpty && <DivergingLegend />}
       </div>
-      {skus.length === 0 ? (
-        <p className="muted">No SKUs here.</p>
+      {isEmpty ? (
+        <p className="muted">{level ? 'No SKUs here.' : 'No stocked variants here.'}</p>
       ) : level ? (
         <BreakdownTable
           level={level}
@@ -42,10 +45,12 @@ function Explorer({ catalog }: { catalog: Catalog }) {
           onSelect={(label) => navigate([...path, label])}
         />
       ) : (
-        <ProductTable groups={groupByProduct(skus, catalog.products)} />
+        <ProductTable groups={groupByProduct(productSkus, catalog.products)} />
       )}
       <p className="footnote muted">
-        Stocked = more than 0 units on hand. Bar length = share of the row's stocked SKUs. Excludes {catalog.skus.length - inScope.length} kit and virtual SKUs (
+        Stocked = more than 0 units on hand. Bar length = share of the{' '}
+        {level ? "row's stocked SKUs" : "variant's units on hand; variants with no units in either location are hidden"}.
+        Excludes {catalog.skus.length - inScope.length} kit and virtual SKUs (
         {[...EXCLUDED_ITEM_TYPES].join(', ')}).
       </p>
     </>

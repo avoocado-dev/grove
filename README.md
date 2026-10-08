@@ -1,7 +1,8 @@
 # PA / NV Availability
 
 A drill-down table for finding where stock diverges between the Pennsylvania and Nevada warehouses:
-**Department → Category → Class → Products (with variants)**.
+**Department → Category → Class → Products (with variants)**. The product level lists one row per variant
+(product, variant, vendor, ID) with a bar showing how its units split between the two warehouses.
 
 Each hierarchy level shows **Stocked SKUs**, **Stocked in Both**, and **Stocked only in NV or PA**. The last
 column is a diverging bar: PA-only grows left from the centre and NV-only grows right, each with its count at the tip.
@@ -47,7 +48,7 @@ There are two boundaries:
   a single, tested line to change.
 
 The app keeps one flat SKU list (with a product lookup) and aggregates it on every navigation. At about
-9k SKUs this takes milliseconds, and new questions (filter by vendor, a price band, a different level) become new
+9k SKUs this takes milliseconds, and new questions (filter by vendor or product type, a different level) become new
 pure functions instead of a new data pipeline.
 
 Tests cover the domain layer (extraction, normalization, availability, rollups), because those decide
@@ -75,8 +76,8 @@ the numbers. The UI has no tests.
 
 ## Deliberately not built
 
-Search, filters (vendor, price, division), charts outside the table, a "neither" column, and everything else in
-the file (ratings, plastic data, ingredients). The aim was one view that answers one question well. Each of these
+Search, filters (vendor, division), charts outside the table, a "neither" column, and everything else in
+the file (prices, ratings, plastic data, ingredients). The aim was one view that answers one question well. Each of these
 is a small addition to the existing structure.
 
 ## Weakest parts / what I'd change next
