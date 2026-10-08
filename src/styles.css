@@ -8,6 +8,8 @@
   --grid: #e1e0d9;
   --baseline: #c3c2b7;
   --hover: rgba(11, 11, 11, 0.04);
+  /* Selection is neutral ink, so it never reads as NV blue or PA orange. */
+  --selected: rgba(11, 11, 11, 0.08);
   --link: #1c5cab;
   /* Location identity: categorical slots 1 and 2, validated for CVD separation. */
   --nv: #2a78d6;
@@ -25,6 +27,7 @@
     --grid: #2c2c2a;
     --baseline: #383835;
     --hover: rgba(255, 255, 255, 0.05);
+    --selected: rgba(255, 255, 255, 0.1);
     --link: #86b6ef;
     --nv: #3987e5;
     --pa: #d95926;
@@ -161,6 +164,15 @@ thead th {
   background: var(--hover);
 }
 
+.highlighted,
+.highlighted:hover {
+  background: var(--selected);
+}
+
+.highlighted > td:first-child {
+  box-shadow: inset 3px 0 0 var(--text);
+}
+
 thead th {
   vertical-align: middle;
 }
@@ -183,11 +195,11 @@ th.num .sort-button {
 
 /* Only in NV/PA: one column; two equal halves keep the bars' center aligned across rows. */
 .diverging-col {
-  --count-w: 3em;
   text-align: center;
 }
 
 .diverging {
+  --count-w: 3em;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
@@ -265,6 +277,75 @@ th.num .sort-button {
   vertical-align: -1px;
 }
 
+/* Category imbalance cards: one row above the table. */
+.highlights {
+  margin-bottom: 16px;
+}
+
+.highlights__title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.highlights__title .muted {
+  font-weight: 400;
+}
+
+.highlights__cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+}
+
+.card:hover {
+  border-color: var(--baseline);
+  background-image: linear-gradient(var(--hover), var(--hover));
+}
+
+.card--selected,
+.card--selected:hover {
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--text);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.card__eyebrow {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.card__name {
+  font-weight: 600;
+}
+
+.card .diverging {
+  margin: 4px 0;
+}
+
+.card__note {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
 /* Product view */
 .product-col {
   min-width: 180px;
@@ -283,6 +364,12 @@ thead .product-col {
 .footnote {
   margin-top: 12px;
   font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .highlights__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {

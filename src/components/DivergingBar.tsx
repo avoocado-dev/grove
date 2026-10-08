@@ -22,14 +22,15 @@ interface DivergingBarProps {
  */
 export function DivergingBar({ pa, nv, title }: DivergingBarProps) {
   return (
-    <div className="diverging" title={title}>
+    // A span, so the bar can sit inside buttons (cards) as well as table cells.
+    <span className="diverging" title={title}>
       <span className="diverging__half diverging__half--left">
         <Bar {...pa} fill="fill--pa" />
       </span>
       <span className="diverging__half diverging__half--right">
         <Bar {...nv} fill="fill--nv" />
       </span>
-    </div>
+    </span>
   );
 }
 

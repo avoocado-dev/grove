@@ -1,20 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { availabilityOf, isInScope, isStocked } from './availability.ts';
 import { UNASSIGNED, groupByLevel, groupByProduct, skusUnder, summarize } from './rollup.ts';
-import type { Sku } from './types.ts';
-
-function sku(overrides: Partial<Sku> & { nv?: number; pa?: number; path?: (string | null)[] } = {}): Sku {
-  const { nv = 0, pa = 0, path = ['Dept', 'Cat', 'Class'], ...rest } = overrides;
-  return {
-    id: 'v',
-    productId: 'p',
-    title: 'Default',
-    itemType: '_inventoryItem',
-    hierarchy: { department: path[0] ?? null, category: path[1] ?? null, class: path[2] ?? null },
-    quantity: { NV: nv, PA: pa },
-    ...rest,
-  };
-}
+import { makeSku as sku } from './test-helpers.ts';
 
 describe('availabilityOf', () => {
   it('classifies by units on hand', () => {

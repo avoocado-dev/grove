@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { GroupRow, Summary } from '../catalog/rollup.ts';
 import type { Level } from '../catalog/types.ts';
@@ -32,11 +32,17 @@ const LEVEL_NAMES: Record<Level, string> = { department: 'Department', category:
 interface BreakdownTableProps {
   level: Level;
   rows: GroupRow[];
+  /** Row to emphasize, e.g. the one holding a selected highlight card. */
+  highlightedLabel?: string | null;
   onSelect: (label: string) => void;
 }
 
-export function BreakdownTable({ level, rows, onSelect }: BreakdownTableProps) {
+export function BreakdownTable({ level, rows, highlightedLabel, onSelect }: BreakdownTableProps) {
   const [sort, setSort] = useState<Sort>({ key: 'stocked', descending: true });
+  const highlightedRow = useRef<HTMLTableRowElement>(null);
+  useEffect(() => {
+    highlightedRow.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [highlightedLabel]);
   // Bars scale to the largest single-location share in view so differences are visible.
   const scaleMax = Math.max(
     ...rows.flatMap(({ summary: { counts, stocked } }) => [
@@ -75,19 +81,27 @@ export function BreakdownTable({ level, rows, onSelect }: BreakdownTableProps) {
           <th className="shrink" aria-sort={ariaSort('BOTH')}>
             {sortButton('BOTH', 'Stocked in Both')}
           </th>
-          <th className="diverging-col">Stocked only in NV or PA</th>
+          <th className="diverging-col">Only in NV/PA split</th>
         </tr>
       </thead>
       <tbody>
-        {sortRows(rows, sort).map((row) => (
-          // The button gives keyboard access; its click bubbles to the row handler.
-          <tr key={row.label} className="clickable" onClick={() => onSelect(row.label)}>
-            <td className="shrink">
-              <button className="row-label">{row.label}</button>
-            </td>
-            <SummaryCells summary={row.summary} scaleMax={scaleMax} />
-          </tr>
-        ))}
+        {sortRows(rows, sort).map((row) => {
+          const highlighted = row.label === highlightedLabel;
+          return (
+            // The button gives keyboard access; its click bubbles to the row handler.
+            <tr
+              key={row.label}
+              ref={highlighted ? highlightedRow : undefined}
+              className={highlighted ? 'clickable highlighted' : 'clickable'}
+              onClick={() => onSelect(row.label)}
+            >
+              <td className="shrink">
+                <button className="row-label">{row.label}</button>
+              </td>
+              <SummaryCells summary={row.summary} scaleMax={scaleMax} />
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

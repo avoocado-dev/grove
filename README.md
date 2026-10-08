@@ -10,6 +10,12 @@ Bar length is the share of the row's stocked SKUs, so a lopsided small category 
 lopsided large one. Because the counts are printed in the table, it also works as the accessible text version
 of the chart.
 
+Cards above the table surface the **5 most imbalanced categories**: across the whole catalog on All departments,
+and within the department once you're inside one. They're ranked by |NV-only − PA-only| ÷ stocked SKUs, counting
+only categories with at least 10 stocked SKUs so a one- or two-SKU difference can't top the list. Clicking a card
+highlights the category's row: on All departments it first opens the category's department; inside a department it
+highlights in place (click again to clear).
+
 ## Running it
 
 Requires Node ≥ 23.6 (runs the TypeScript data script natively).
@@ -38,6 +44,7 @@ data/*.jsonl ──► scripts/prepare-data.ts ──► public/catalog.json ─
 | `src/catalog/extract.ts` | Raw Shopify JSON → slim catalog: pulls the metafields we need and normalizes hierarchy labels |
 | `src/catalog/availability.ts` | **Business rules**: what "available" means and which SKUs are in scope |
 | `src/catalog/rollup.ts` | Pure aggregation: filter by drill path, group by level or product, summarize |
+| `src/catalog/imbalance.ts` | Ranks categories by NV-only vs PA-only imbalance for the highlight cards |
 | `src/useDrillPath.ts` | Drill path ↔ URL (`?department=…&category=…&class=…`), so back, refresh, and deep links work |
 | `src/components/*` | Presentation only: breakdown table, diverging bar, product table, breadcrumbs |
 
@@ -82,8 +89,9 @@ is a small addition to the existing structure.
 
 ## Weakest parts / what I'd change next
 
-- **Small-n noise.** Share-based bars make 3-of-11 look more alarming than 30-of-300. Fixes: a minimum-SKU
-  threshold, de-emphasizing low-n rows, or a toggle to rank by absolute count.
+- **Small-n noise.** Share-based bars make 3-of-11 look more alarming than 30-of-300. The highlight cards guard
+  against this with a 10-SKU minimum, but the table bars don't. Fixes: de-emphasize low-n rows, or a toggle to
+  size bars by absolute count.
 - **Sort state isn't in the URL.** It survives drilling between hierarchy levels but resets after visiting
   a product view. It belongs next to the drill path in the URL.
 - **`locations` is ignored entirely.** If "eligible to sell here but zero units" matters to ops (e.g. a
