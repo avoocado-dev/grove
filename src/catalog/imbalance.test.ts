@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { topCategoryImbalances } from './imbalance.ts';
+import { singleLocationSkus, topCategoryImbalances, unitsOnHandSplit } from './imbalance.ts';
 import { makeSkus } from './test-helpers.ts';
 
 /** A category with the given NV-only, PA-only, and both-location SKU counts. */
@@ -18,7 +18,7 @@ describe('topCategoryImbalances', () => {
       ...category(['Home', 'LeansPA'], { paOnly: 8, both: 32 }), // -8 of 40 = 20%
       ...category(['Pet', 'LeansNV'], { nvOnly: 6, both: 24 }), // +6 of 30 = 20%, smaller gap
     ];
-    const ranked = topCategoryImbalances(skus, 5, 10);
+    const ranked = topCategoryImbalances(skus, singleLocationSkus, 5, 10);
     expect(ranked.map((c) => [c.category, c.gap])).toEqual([
       ['LeansPA', -8],
       ['LeansNV', 6],
@@ -35,7 +35,7 @@ describe('topCategoryImbalances', () => {
       ...category([null, null], { paOnly: 20, both: 20 }),
       ...category(['Home', 'Kept'], { nvOnly: 3, both: 30 }),
     ];
-    expect(topCategoryImbalances(skus, 5, 10).map((c) => c.category)).toEqual(['Kept']);
+    expect(topCategoryImbalances(skus, singleLocationSkus, 5, 10).map((c) => c.category)).toEqual(['Kept']);
   });
 
   it('keeps same-named categories in different departments apart', () => {
@@ -43,7 +43,7 @@ describe('topCategoryImbalances', () => {
       ...category(['Home', 'Gifts'], { nvOnly: 10, both: 20 }),
       ...category(['Baby', 'Gifts'], { paOnly: 10, both: 20 }),
     ];
-    expect(topCategoryImbalances(skus, 5, 10).map((c) => [c.department, c.gap])).toEqual([
+    expect(topCategoryImbalances(skus, singleLocationSkus, 5, 10).map((c) => [c.department, c.gap])).toEqual([
       ['Baby', -10],
       ['Home', 10],
     ]);
@@ -53,6 +53,27 @@ describe('topCategoryImbalances', () => {
     const skus = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].flatMap((name, i) =>
       category(['Dept', name], { nvOnly: i + 1, both: 20 }),
     );
-    expect(topCategoryImbalances(skus, 5, 10)).toHaveLength(5);
+    expect(topCategoryImbalances(skus, singleLocationSkus, 5, 10)).toHaveLength(5);
+  });
+});
+
+describe('topCategoryImbalances by units on hand', () => {
+  it('ranks by the gap in units as a share of all units, in both directions', () => {
+    const skus = [
+      ...makeSkus(10, { path: ['Home', 'MostlyPA'], nv: 1, pa: 9 }), // 10 NV vs 90 PA: -80%
+      ...makeSkus(10, { path: ['Home', 'MostlyNV'], nv: 6, pa: 4 }), // 60 NV vs 40 PA: +20%
+      ...makeSkus(10, { path: ['Home', 'Even'], nv: 5, pa: 5 }),
+    ];
+    const ranked = topCategoryImbalances(skus, unitsOnHandSplit, 5, 10);
+    expect(ranked.map((c) => [c.category, c.gap])).toEqual([
+      ['MostlyPA', -80],
+      ['MostlyNV', 20],
+    ]);
+    expect(ranked[0]!.share).toBeCloseTo(-0.8);
+  });
+
+  it('applies the same stocked-SKU minimum', () => {
+    const skus = makeSkus(9, { path: ['Home', 'Small'], nv: 0, pa: 50 });
+    expect(topCategoryImbalances(skus, unitsOnHandSplit, 5, 10)).toEqual([]);
   });
 });

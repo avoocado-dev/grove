@@ -1,4 +1,5 @@
-const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+/** 152,934 -> "152.9K" */
+export const compactNumber = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
 
 interface SplitBarProps {
   pa: number;
@@ -13,12 +14,12 @@ interface SplitBarProps {
 export function SplitBar({ pa, nv }: SplitBarProps) {
   return (
     <span className="split" title={`${pa.toLocaleString()} units in PA, ${nv.toLocaleString()} units in NV`}>
-      <span className={pa > 0 ? 'split__value' : 'split__value muted'}>{compact.format(pa)}</span>
+      <span className={pa > 0 ? 'split__value' : 'split__value muted'}>{compactNumber.format(pa)}</span>
       <span className="split__track">
         {pa > 0 && <span className="split__part fill--pa" style={{ flexGrow: pa }} />}
         {nv > 0 && <span className="split__part fill--nv" style={{ flexGrow: nv }} />}
       </span>
-      <span className={nv > 0 ? 'split__value' : 'split__value muted'}>{compact.format(nv)}</span>
+      <span className={nv > 0 ? 'split__value' : 'split__value muted'}>{compactNumber.format(nv)}</span>
     </span>
   );
 }

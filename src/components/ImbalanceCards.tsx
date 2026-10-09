@@ -1,6 +1,9 @@
+import type { ReactNode } from 'react';
 import { MIN_STOCKED_SKUS, imbalanceKey } from '../catalog/imbalance.ts';
 import type { CategoryImbalance } from '../catalog/imbalance.ts';
+import type { Location } from '../catalog/types.ts';
 import { DivergingBar, shareOf } from './DivergingBar.tsx';
+import { SplitBar, compactNumber } from './SplitBar.tsx';
 
 interface ImbalanceCardsProps {
   items: CategoryImbalance[];
@@ -12,11 +15,14 @@ interface ImbalanceCardsProps {
   onSelect: (item: CategoryImbalance | null) => void;
 }
 
-/** The most imbalanced categories in view, one card each. */
-export function ImbalanceCards({ items, showDepartment, selectedKey, onSelect }: ImbalanceCardsProps) {
+/** [the location the category leans toward, the other one] */
+const lean = (item: CategoryImbalance): [Location, Location] => (item.gap > 0 ? ['NV', 'PA'] : ['PA', 'NV']);
+
+/** Categories with the most lopsided single-location SKU counts. */
+export function SkuImbalanceCards(props: ImbalanceCardsProps) {
   // Bars share one scale across the cards, like the table rows do.
   const scaleMax = Math.max(
-    ...items.flatMap(({ summary: { counts, stocked } }) => [
+    ...props.items.flatMap(({ summary: { counts, stocked } }) => [
       shareOf(counts.NV_ONLY, stocked),
       shareOf(counts.PA_ONLY, stocked),
     ]),
@@ -24,19 +30,68 @@ export function ImbalanceCards({ items, showDepartment, selectedKey, onSelect }:
   const scale = (share: number) => (scaleMax > 0 ? share / scaleMax : 0);
 
   return (
-    <section className="highlights" aria-labelledby="highlights-title">
-      <h2 id="highlights-title" className="highlights__title">
-        Categories with more SKUs located only in one location than the other{' '}
+    <CardRow
+      {...props}
+      id="sku-imbalance"
+      title="Categories with more SKUs located only in one location than the other"
+      ranking="ranked by share of stocked SKUs"
+      chart={({ summary: { counts, stocked } }) => (
+        <DivergingBar
+          pa={{ value: counts.PA_ONLY, length: scale(shareOf(counts.PA_ONLY, stocked)) }}
+          nv={{ value: counts.NV_ONLY, length: scale(shareOf(counts.NV_ONLY, stocked)) }}
+          title={`${counts.PA_ONLY} only in PA, ${counts.NV_ONLY} only in NV, of ${stocked} stocked SKUs`}
+        />
+      )}
+      note={(item) => {
+        // e.g. "4 SKUs in PA, 0 in NV", leaning location first.
+        const only = { NV: item.summary.counts.NV_ONLY, PA: item.summary.counts.PA_ONLY };
+        const [more, fewer] = lean(item);
+        return `${only[more]} ${only[more] === 1 ? 'SKU' : 'SKUs'} in ${more}, ${only[fewer]} in ${fewer}`;
+      }}
+    />
+  );
+}
+
+/** Categories whose units on hand sit most heavily in one location. */
+export function StockImbalanceCards(props: ImbalanceCardsProps) {
+  return (
+    <CardRow
+      {...props}
+      id="stock-imbalance"
+      title="Categories with more stock in one location than the other"
+      ranking="ranked by share of units on hand"
+      chart={({ summary: { units } }) => <SplitBar pa={units.PA} nv={units.NV} />}
+      note={(item) => {
+        const [more, fewer] = lean(item);
+        return `${compactNumber.format(Math.abs(item.gap))} more units are in ${more} than in ${fewer}`;
+      }}
+    />
+  );
+}
+
+interface CardRowProps extends ImbalanceCardsProps {
+  id: string;
+  title: string;
+  /** How the cards are ordered, shown after the title. */
+  ranking: string;
+  chart: (item: CategoryImbalance) => ReactNode;
+  note: (item: CategoryImbalance) => ReactNode;
+}
+
+/** A titled row of up to five category cards; a card toggles selection when clicked. */
+function CardRow({ id, title, ranking, items, showDepartment, selectedKey, onSelect, chart, note }: CardRowProps) {
+  return (
+    <section className="highlights" aria-labelledby={`${id}-title`}>
+      <h2 id={`${id}-title`} className="highlights__title">
+        {title}{' '}
         <span className="muted">
-          · ranked by share of stocked SKUs, at least {MIN_STOCKED_SKUS} stocked
+          · {ranking}, at least {MIN_STOCKED_SKUS} stocked
         </span>
       </h2>
       <div className="highlights__cards">
         {items.map((item) => {
-          const { counts, stocked } = item.summary;
           const key = imbalanceKey(item);
           const selected = key === selectedKey;
-          const [more, fewer] = item.gap > 0 ? ['NV', 'PA'] : ['PA', 'NV'];
           return (
             <button
               key={key}
@@ -46,14 +101,8 @@ export function ImbalanceCards({ items, showDepartment, selectedKey, onSelect }:
             >
               {showDepartment && <span className="card__eyebrow">{item.department}</span>}
               <span className="card__name">{item.category}</span>
-              <DivergingBar
-                pa={{ value: counts.PA_ONLY, length: scale(shareOf(counts.PA_ONLY, stocked)) }}
-                nv={{ value: counts.NV_ONLY, length: scale(shareOf(counts.NV_ONLY, stocked)) }}
-                title={`${counts.PA_ONLY} only in PA, ${counts.NV_ONLY} only in NV, of ${stocked} stocked SKUs`}
-              />
-              <span className="card__note">
-                {Math.abs(item.gap)} more SKUs are located only in {more} than only in {fewer}
-              </span>
+              {chart(item)}
+              <span className="card__note">{note(item)}</span>
             </button>
           );
         })}
