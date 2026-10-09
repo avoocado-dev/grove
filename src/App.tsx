@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { isInScope, isStocked } from './catalog/availability.ts';
-import { imbalanceKey, singleLocationSkus, topCategoryImbalances, unitsOnHandSplit } from './catalog/imbalance.ts';
+import { singleLocationSkus, topCategoryImbalances, unitsOnHandSplit } from './catalog/imbalance.ts';
 import type { CategoryImbalance } from './catalog/imbalance.ts';
 import { groupByLevel, groupByProduct, skusUnder } from './catalog/rollup.ts';
 import type { DrillPath } from './catalog/rollup.ts';
@@ -42,13 +42,12 @@ function PageHeader({ children }: { children?: ReactNode }) {
   );
 }
 
-/** What's emphasized in a view: a breakdown row, product-view rows, and/or a selected card. */
+/** What's emphasized in a view: a breakdown row or product-view rows. */
 interface Highlight {
   /** The view it applies to (a serialized drill path), so it clears when you navigate away. */
   view: string;
   rowLabel?: string;
   skuIds?: string[];
-  cardKey?: string;
 }
 
 function Explorer({ catalog }: { catalog: Catalog }) {
@@ -60,8 +59,8 @@ function Explorer({ catalog }: { catalog: Catalog }) {
   // The product view lists only stocked variants, so its rows match the "Stocked SKUs" count it was opened from.
   const productSkus = level ? [] : skus.filter(isStocked);
   const isEmpty = level ? skus.length === 0 : productSkus.length === 0;
-  // Category highlights: catalog-wide on All departments, within the department once inside one.
-  const showHighlights = path.length < 2;
+  // "Needs attention" cards rank categories catalog-wide, so they show on All departments only.
+  const showHighlights = path.length === 0;
   const skuHighlights = useMemo(
     () => (showHighlights ? topCategoryImbalances(skus, singleLocationSkus) : []),
     [showHighlights, skus],
@@ -70,7 +69,6 @@ function Explorer({ catalog }: { catalog: Catalog }) {
     () => (showHighlights ? topCategoryImbalances(skus, unitsOnHandSplit) : []),
     [showHighlights, skus],
   );
-  const atTop = path.length === 0;
 
   const [highlight, setHighlight] = useState<Highlight | null>(null);
   const view = JSON.stringify(path);
@@ -82,16 +80,8 @@ function Explorer({ catalog }: { catalog: Catalog }) {
     if (JSON.stringify(target) !== view) navigate(target);
   };
 
-  // Both card rows share one selection: a card in either highlights its category's row.
-  const cardProps = {
-    showDepartment: atTop,
-    selectedKey: active?.cardKey ?? null,
-    onSelect: (item: CategoryImbalance | null) => {
-      if (!item) return setHighlight(null);
-      // On All departments the table rows aren't categories, so open the category's department.
-      showInView(atTop ? [item.department] : path, { rowLabel: item.category, cardKey: imbalanceKey(item) });
-    },
-  };
+  // The table here lists departments, so a card opens its category's department and highlights it there.
+  const openCategory = (item: CategoryImbalance) => showInView([item.department], { rowLabel: item.category });
 
   return (
     <>
@@ -106,8 +96,8 @@ function Explorer({ catalog }: { catalog: Catalog }) {
           <h2 id="insights-title" className="insights__title">
             Needs attention
           </h2>
-          {skuHighlights.length > 0 && <SkuImbalanceCards items={skuHighlights} {...cardProps} />}
-          {stockHighlights.length > 0 && <StockImbalanceCards items={stockHighlights} {...cardProps} />}
+          {skuHighlights.length > 0 && <SkuImbalanceCards items={skuHighlights} onSelect={openCategory} />}
+          {stockHighlights.length > 0 && <StockImbalanceCards items={stockHighlights} onSelect={openCategory} />}
         </section>
       )}
       <div className="toolbar">

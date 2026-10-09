@@ -7,12 +7,7 @@ import { SplitBar, compactNumber } from './SplitBar.tsx';
 
 interface ImbalanceCardsProps {
   items: CategoryImbalance[];
-  /** Name each card's department; redundant once you're inside one. */
-  showDepartment: boolean;
-  /** imbalanceKey of the selected card, if any. */
-  selectedKey: string | null;
-  /** Called with the clicked card; clicking the selected card again calls it with null. */
-  onSelect: (item: CategoryImbalance | null) => void;
+  onSelect: (item: CategoryImbalance) => void;
 }
 
 /** [the location the category leans toward, the other one] */
@@ -61,10 +56,7 @@ export function StockImbalanceCards(props: ImbalanceCardsProps) {
       title="Categories with more stock in one location than the other"
       ranking="ranked by share of units on hand"
       chart={({ summary: { units } }) => <SplitBar pa={units.PA} nv={units.NV} />}
-      note={(item) => {
-        const [more, fewer] = lean(item);
-        return `${compactNumber.format(Math.abs(item.gap))} more units are in ${more} than in ${fewer}`;
-      }}
+      note={(item) => `${compactNumber.format(Math.abs(item.gap))} more units are in ${lean(item)[0]}`}
     />
   );
 }
@@ -78,8 +70,8 @@ interface CardRowProps extends ImbalanceCardsProps {
   note: (item: CategoryImbalance) => ReactNode;
 }
 
-/** A titled row of up to five category cards; a card toggles selection when clicked. */
-function CardRow({ id, title, ranking, items, showDepartment, selectedKey, onSelect, chart, note }: CardRowProps) {
+/** A titled row of up to five category cards. */
+function CardRow({ id, title, ranking, items, onSelect, chart, note }: CardRowProps) {
   return (
     <section className="highlights" aria-labelledby={`${id}-title`}>
       <h3 id={`${id}-title`} className="highlights__title">
@@ -89,23 +81,14 @@ function CardRow({ id, title, ranking, items, showDepartment, selectedKey, onSel
         </span>
       </h3>
       <div className="highlights__cards">
-        {items.map((item) => {
-          const key = imbalanceKey(item);
-          const selected = key === selectedKey;
-          return (
-            <button
-              key={key}
-              className={selected ? 'card card--selected' : 'card'}
-              aria-pressed={selected}
-              onClick={() => onSelect(selected ? null : item)}
-            >
-              {showDepartment && <span className="card__eyebrow">{item.department}</span>}
-              <span className="card__name">{item.category}</span>
-              {chart(item)}
-              <span className="card__note">{note(item)}</span>
-            </button>
-          );
-        })}
+        {items.map((item) => (
+          <button key={imbalanceKey(item)} className="card" onClick={() => onSelect(item)}>
+            <span className="card__eyebrow">{item.department}</span>
+            <span className="card__name">{item.category}</span>
+            {chart(item)}
+            <span className="card__note">{note(item)}</span>
+          </button>
+        ))}
       </div>
     </section>
   );

@@ -468,12 +468,6 @@ th.num .sort-button {
   background-image: linear-gradient(var(--hover), var(--hover));
 }
 
-.card--selected,
-.card--selected:hover {
-  border-color: var(--text);
-  box-shadow: inset 0 0 0 1px var(--text);
-}
-
 .card:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;

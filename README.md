@@ -15,8 +15,8 @@ Each hierarchy level shows, in order: **Stocked SKUs**, the **PA/NV stock split*
 
 Because the values are printed beside the bars, the table also works as the accessible text version of the charts.
 
-Two rows of cards above the table surface the **5 most imbalanced categories** on two measures: across the whole
-catalog on All departments, and within the department once you're inside one.
+On All departments, a **Needs attention** panel above the table surfaces the **5 most imbalanced categories**
+catalog-wide on two measures:
 
 - **More SKUs located only in one location**: ranked by |NV-only − PA-only| ÷ stocked SKUs.
 - **More stock in one location**: ranked by |NV units − PA units| ÷ units on hand.
@@ -24,9 +24,8 @@ catalog on All departments, and within the department once you're inside one.
 Both count only categories with at least 10 stocked SKUs, so a one- or two-SKU category can't top the list. Both
 rankings are one function (`topCategoryImbalances`) with a pluggable measure.
 
-Clicking a card in either row highlights the category's row: on All departments it first opens the category's
-department; inside a department it highlights in place (click again to clear). The cards sit on their own panel so
-they read as separate from the table.
+Clicking a card opens the category's department with the category's row highlighted. The panel is only on All
+departments; once you drill in, the table has the page to itself.
 
 **Search** (top right) finds departments, categories, and classes by name, products by title or vendor, and SKUs by
 variant ID or variant name. Picking a result works like a card: it opens the view that lists it and highlights the
