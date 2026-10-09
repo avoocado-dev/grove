@@ -28,7 +28,7 @@ export function SkuImbalanceCards(props: ImbalanceCardsProps) {
     <CardRow
       {...props}
       id="sku-imbalance"
-      title="Categories with more SKUs located only in one location than the other"
+      title="Categories with SKUs location imbalances"
       ranking="ranked by share of stocked SKUs"
       chart={({ summary: { counts, stocked } }) => (
         <DivergingBar
@@ -53,7 +53,7 @@ export function StockImbalanceCards(props: ImbalanceCardsProps) {
     <CardRow
       {...props}
       id="stock-imbalance"
-      title="Categories with more stock in one location than the other"
+      title="Categories with SKU stock location imbalances"
       ranking="ranked by share of units on hand"
       chart={({ summary: { units } }) => <SplitBar pa={units.PA} nv={units.NV} />}
       note={(item) => `${compactNumber.format(Math.abs(item.gap))} more units are in ${lean(item)[0]}`}
