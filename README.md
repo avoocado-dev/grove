@@ -105,23 +105,3 @@ because those decide the numbers and what gets surfaced. The UI has no tests.
 Filters (vendor, division), sorting by the chart columns, a "neither" column, and everything else in the file
 (prices, ratings, plastic data, ingredients). The aim was one view that answers one question well. Each of these is
 a small addition to the existing structure.
-
-## Weakest parts / what I'd change next
-
-- **Small-n noise.** Share-based bars make 3-of-11 look more alarming than 30-of-300. The highlight cards guard
-  against this with a 10-SKU minimum, but the table bars don't. Fixes: de-emphasize low-n rows, or a toggle to
-  size bars by absolute count.
-- **Sort state isn't in the URL.** It survives drilling between hierarchy levels but resets after visiting
-  a product view. It belongs next to the drill path in the URL.
-- **`locations` is ignored entirely.** If "eligible to sell here but zero units" matters to ops (e.g. a
-  replenishment gap versus a deliberate assortment choice), that would be a second dimension worth surfacing.
-- **Normalization only handles case and whitespace.** Typos such as `Deoderizers` and genuinely different names
-  for the same thing pass through unchanged.
-- **Search only covers stocked variants.** It mirrors what the product view shows, so an out-of-stock SKU's ID
-  finds nothing. Showing those results with a "not stocked anywhere" state would be more honest.
-- **No UI tests.** Card clicks, search selection, and highlighting were checked by driving a browser by hand. A few
-  component tests around the highlight flow would protect it.
-- **Narrow screens.** The table is wider than a phone screen; it needs a horizontal scroll container or a
-  stacked layout.
-- **The whole catalog is loaded up front.** That's fine at this size. At 100× the size I'd pre-aggregate per node
-  in the ETL step and load products lazily.
