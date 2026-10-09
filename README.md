@@ -39,7 +39,7 @@ Requires Node ≥ 23.6 (runs the TypeScript data script natively).
 ```sh
 npm install
 # put the catalog export (*.jsonl) in data/, then:
-npm run data      # data/*.jsonl (~80MB) -> public/catalog.json (~3.7MB, ~430KB gzipped)
+npm run data      # data/*.jsonl (~80MB) -> public/catalog.json (~3.6MB, ~410KB gzipped)
 npm run dev
 npm test
 ```
@@ -63,7 +63,7 @@ data/*.jsonl ──► scripts/prepare-data.ts ──► public/catalog.json ─
 | `src/catalog/imbalance.ts` | Ranks categories by PA/NV imbalance on a pluggable measure, for the highlight cards |
 | `src/catalog/search.ts` | Builds the search index and ranks matches; each result knows the view and rows to highlight |
 | `src/useDrillPath.ts` | Drill path ↔ URL (`?department=…&category=…&class=…`), so back, refresh, and deep links work |
-| `src/components/*` | Presentation only: breakdown table, diverging bar, product table, breadcrumbs |
+| `src/components/*` | Presentation only: breakdown and product tables, the two bar charts, highlight cards, search box, breadcrumbs |
 
 There are two boundaries:
 - **The ETL boundary.** The slim file stays faithful to the source: nulls stay null, quantities stay raw
@@ -75,8 +75,8 @@ The app keeps one flat SKU list (with a product lookup) and aggregates it on eve
 9k SKUs this takes milliseconds, and new questions (filter by vendor or product type, a different level) become new
 pure functions instead of a new data pipeline.
 
-Tests cover the domain layer (extraction, normalization, availability, rollups), because those decide
-the numbers. The UI has no tests.
+Tests cover the domain layer (extraction, normalization, availability, rollups, imbalance ranking, search),
+because those decide the numbers and what gets surfaced. The UI has no tests.
 
 ## Decisions and assumptions
 
@@ -97,12 +97,14 @@ the numbers. The UI has no tests.
   reconcile and the data gap stays visible rather than being dropped.
 - **"Stocked SKUs" = SKUs with units in at least one location** (Only NV + Only PA + Both). SKUs stocked in
   neither location are counted in the data but not shown as a column.
+- **The product view lists only stocked variants**, so a class's product rows match the "Stocked SKUs" count you
+  clicked through from (about 20% of in-scope SKUs have no units in either location).
 
 ## Deliberately not built
 
-Search, filters (vendor, division), charts outside the table, a "neither" column, and everything else in
-the file (prices, ratings, plastic data, ingredients). The aim was one view that answers one question well. Each of these
-is a small addition to the existing structure.
+Filters (vendor, division), sorting by the chart columns, a "neither" column, and everything else in the file
+(prices, ratings, plastic data, ingredients). The aim was one view that answers one question well. Each of these is
+a small addition to the existing structure.
 
 ## Weakest parts / what I'd change next
 
@@ -115,5 +117,11 @@ is a small addition to the existing structure.
   replenishment gap versus a deliberate assortment choice), that would be a second dimension worth surfacing.
 - **Normalization only handles case and whitespace.** Typos such as `Deoderizers` and genuinely different names
   for the same thing pass through unchanged.
+- **Search only covers stocked variants.** It mirrors what the product view shows, so an out-of-stock SKU's ID
+  finds nothing. Showing those results with a "not stocked anywhere" state would be more honest.
+- **No UI tests.** Card clicks, search selection, and highlighting were checked by driving a browser by hand. A few
+  component tests around the highlight flow would protect it.
+- **Narrow screens.** The table is wider than a phone screen; it needs a horizontal scroll container or a
+  stacked layout.
 - **The whole catalog is loaded up front.** That's fine at this size. At 100× the size I'd pre-aggregate per node
   in the ETL step and load products lazily.

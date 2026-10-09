@@ -506,11 +506,6 @@ thead .product-col {
   width: 30%;
 }
 
-.footnote {
-  margin-top: 12px;
-  font-size: 12px;
-}
-
 @media (max-width: 900px) {
   .highlights__cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));

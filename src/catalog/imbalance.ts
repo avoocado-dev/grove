@@ -75,6 +75,6 @@ export function topCategoryImbalances(
     .slice(0, limit);
 }
 
-/** Identifies a category across departments, e.g. for tracking the selected card. */
+/** Identifies a category across departments (same-named categories can repeat). */
 export const imbalanceKey = ({ department, category }: Pick<CategoryImbalance, 'department' | 'category'>) =>
   JSON.stringify([department, category]);

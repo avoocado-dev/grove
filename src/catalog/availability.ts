@@ -33,7 +33,7 @@ export function isStocked(sku: Sku): boolean {
  * - _service / _otherCharge: virtual goods (e.g. "Protect the Rainforest – 10 acres"), never in a warehouse.
  * - _kit: bundles whose stock is derived from component SKUs, so counting them double-counts.
  */
-export const EXCLUDED_ITEM_TYPES: ReadonlySet<string> = new Set(['_kit', '_service', '_otherCharge']);
+const EXCLUDED_ITEM_TYPES: ReadonlySet<string> = new Set(['_kit', '_service', '_otherCharge']);
 
 export function isInScope(sku: Sku): boolean {
   return sku.itemType === null || !EXCLUDED_ITEM_TYPES.has(sku.itemType);
