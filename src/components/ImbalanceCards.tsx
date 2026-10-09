@@ -82,12 +82,12 @@ interface CardRowProps extends ImbalanceCardsProps {
 function CardRow({ id, title, ranking, items, showDepartment, selectedKey, onSelect, chart, note }: CardRowProps) {
   return (
     <section className="highlights" aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`} className="highlights__title">
+      <h3 id={`${id}-title`} className="highlights__title">
         {title}{' '}
         <span className="muted">
           · {ranking}, at least {MIN_STOCKED_SKUS} stocked
         </span>
-      </h2>
+      </h3>
       <div className="highlights__cards">
         {items.map((item) => {
           const key = imbalanceKey(item);

@@ -10,6 +10,8 @@
   --hover: rgba(11, 11, 11, 0.04);
   /* Selection is neutral ink, so it never reads as NV blue or PA orange. */
   --selected: rgba(11, 11, 11, 0.08);
+  /* One step off the page, behind the highlight cards. */
+  --panel: #f1f0ec;
   --link: #1c5cab;
   /* Location identity: categorical slots 1 and 2, validated for CVD separation. */
   --nv: #2a78d6;
@@ -28,6 +30,7 @@
     --baseline: #383835;
     --hover: rgba(255, 255, 255, 0.05);
     --selected: rgba(255, 255, 255, 0.1);
+    --panel: #141413;
     --link: #86b6ef;
     --nv: #3987e5;
     --pa: #d95926;
@@ -81,6 +84,121 @@ button {
 .row-label:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
+}
+
+/* Title on the left, search on the right. */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.search {
+  position: relative;
+  width: min(400px, 100%);
+}
+
+.search__input {
+  width: 100%;
+  padding: 8px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+}
+
+.search__input::placeholder {
+  color: var(--muted);
+}
+
+.search__input:focus {
+  outline: 2px solid var(--link);
+  outline-offset: 1px;
+}
+
+.search__results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  max-height: 440px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.search__results ul {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+}
+
+.search__option {
+  display: grid;
+  grid-template-columns: 6.5em 1fr;
+  column-gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search__option--active {
+  background: var(--selected);
+}
+
+.search__kind {
+  grid-row: span 2;
+  padding-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.search__context {
+  grid-column: 2;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.search__empty {
+  margin: 0;
+  padding: 10px 12px;
+  color: var(--muted);
+}
+
+/* Highlights sit on their own tray so they read as separate from the table below. */
+.insights {
+  margin-bottom: 28px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--grid);
+  border-radius: 12px;
+}
+
+.insights__title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.insights .highlights:last-child {
+  margin-bottom: 0;
 }
 
 /* Breadcrumbs on the left, chart legend on the right, above the table. */

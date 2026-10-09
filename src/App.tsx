@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { isInScope, isStocked } from './catalog/availability.ts';
 import { imbalanceKey, singleLocationSkus, topCategoryImbalances, unitsOnHandSplit } from './catalog/imbalance.ts';
 import type { CategoryImbalance } from './catalog/imbalance.ts';
 import { groupByLevel, groupByProduct, skusUnder } from './catalog/rollup.ts';
+import type { DrillPath } from './catalog/rollup.ts';
+import { buildSearchIndex } from './catalog/search.ts';
 import { LEVELS } from './catalog/types.ts';
 import type { Catalog } from './catalog/types.ts';
 import { Breadcrumbs } from './components/Breadcrumbs.tsx';
@@ -10,6 +13,7 @@ import { BreakdownTable } from './components/BreakdownTable.tsx';
 import { DivergingLegend } from './components/DivergingBar.tsx';
 import { SkuImbalanceCards, StockImbalanceCards } from './components/ImbalanceCards.tsx';
 import { ProductTable } from './components/ProductTable.tsx';
+import { SearchBox } from './components/SearchBox.tsx';
 import { useCatalog } from './useCatalog.ts';
 import { useDrillPath } from './useDrillPath.ts';
 
@@ -17,16 +21,40 @@ export function App() {
   const state = useCatalog();
   return (
     <main>
-      {state.status === 'loading' && <p className="muted">Loading catalog…</p>}
-      {state.status === 'error' && <p role="alert">{state.message}</p>}
-      {state.status === 'ready' && <Explorer catalog={state.catalog} />}
+      {state.status === 'ready' ? (
+        <Explorer catalog={state.catalog} />
+      ) : (
+        <>
+          <PageHeader />
+          {state.status === 'loading' ? <p className="muted">Loading catalog…</p> : <p role="alert">{state.message}</p>}
+        </>
+      )}
     </main>
   );
+}
+
+function PageHeader({ children }: { children?: ReactNode }) {
+  return (
+    <header className="page-header">
+      <h1 className="page-title">SKU Availability</h1>
+      {children}
+    </header>
+  );
+}
+
+/** What's emphasized in a view: a breakdown row, product-view rows, and/or a selected card. */
+interface Highlight {
+  /** The view it applies to (a serialized drill path), so it clears when you navigate away. */
+  view: string;
+  rowLabel?: string;
+  skuIds?: string[];
+  cardKey?: string;
 }
 
 function Explorer({ catalog }: { catalog: Catalog }) {
   const [path, navigate] = useDrillPath();
   const inScope = useMemo(() => catalog.skus.filter(isInScope), [catalog]);
+  const searchIndex = useMemo(() => buildSearchIndex(inScope, catalog.products), [inScope, catalog]);
   const skus = useMemo(() => skusUnder(inScope, path), [inScope, path]);
   const level = LEVELS[path.length];
   // The product view lists only stocked variants, so its rows match the "Stocked SKUs" count it was opened from.
@@ -44,45 +72,59 @@ function Explorer({ catalog }: { catalog: Catalog }) {
   );
   const atTop = path.length === 0;
 
-  // The selected card is remembered with the view it was picked on, so it clears when you navigate.
-  const [selection, setSelection] = useState<{ view: string; item: CategoryImbalance } | null>(null);
+  const [highlight, setHighlight] = useState<Highlight | null>(null);
   const view = JSON.stringify(path);
-  const selected = selection?.view === view ? selection.item : null;
-  const highlightedLabel = selected?.category ?? null;
+  const active = highlight?.view === view ? highlight : null;
+
+  /** Highlights something in the view that lists it, opening that view if it isn't the current one. */
+  const showInView = (target: DrillPath, emphasis: Omit<Highlight, 'view'>) => {
+    setHighlight({ view: JSON.stringify(target), ...emphasis });
+    if (JSON.stringify(target) !== view) navigate(target);
+  };
 
   // Both card rows share one selection: a card in either highlights its category's row.
   const cardProps = {
     showDepartment: atTop,
-    selectedKey: selected && imbalanceKey(selected),
+    selectedKey: active?.cardKey ?? null,
     onSelect: (item: CategoryImbalance | null) => {
-      if (!item) return setSelection(null);
-      // On All departments the table rows aren't categories, so open the category's
-      // department and highlight its row there; inside a department, highlight in place.
-      const target = atTop ? [item.department] : path;
-      setSelection({ view: JSON.stringify(target), item });
-      if (atTop) navigate(target);
+      if (!item) return setHighlight(null);
+      // On All departments the table rows aren't categories, so open the category's department.
+      showInView(atTop ? [item.department] : path, { rowLabel: item.category, cardKey: imbalanceKey(item) });
     },
   };
 
   return (
     <>
+      <PageHeader>
+        <SearchBox
+          index={searchIndex}
+          onSelect={(result) => showInView(result.path, { rowLabel: result.rowLabel, skuIds: result.skuIds })}
+        />
+      </PageHeader>
+      {(skuHighlights.length > 0 || stockHighlights.length > 0) && (
+        <section className="insights" aria-labelledby="insights-title">
+          <h2 id="insights-title" className="insights__title">
+            Needs attention
+          </h2>
+          {skuHighlights.length > 0 && <SkuImbalanceCards items={skuHighlights} {...cardProps} />}
+          {stockHighlights.length > 0 && <StockImbalanceCards items={stockHighlights} {...cardProps} />}
+        </section>
+      )}
       <div className="toolbar">
         <Breadcrumbs path={path} onNavigate={navigate} />
         {!isEmpty && <DivergingLegend />}
       </div>
-      {skuHighlights.length > 0 && <SkuImbalanceCards items={skuHighlights} {...cardProps} />}
-      {stockHighlights.length > 0 && <StockImbalanceCards items={stockHighlights} {...cardProps} />}
       {isEmpty ? (
         <p className="muted">{level ? 'No SKUs here.' : 'No stocked variants here.'}</p>
       ) : level ? (
         <BreakdownTable
           level={level}
           rows={groupByLevel(skus, level)}
-          highlightedLabel={highlightedLabel}
+          highlightedLabel={active?.rowLabel ?? null}
           onSelect={(label) => navigate([...path, label])}
         />
       ) : (
-        <ProductTable groups={groupByProduct(productSkus, catalog.products)} />
+        <ProductTable groups={groupByProduct(productSkus, catalog.products)} highlightedSkuIds={active?.skuIds} />
       )}
     </>
   );

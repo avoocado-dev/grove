@@ -1,4 +1,4 @@
-# PA / NV Availability
+# SKU Availability
 
 A drill-down table for finding where stock diverges between the Pennsylvania and Nevada warehouses:
 **Department → Category → Class → Products (with variants)**. The product level lists one row per variant
@@ -25,7 +25,13 @@ Both count only categories with at least 10 stocked SKUs, so a one- or two-SKU c
 rankings are one function (`topCategoryImbalances`) with a pluggable measure.
 
 Clicking a card in either row highlights the category's row: on All departments it first opens the category's
-department; inside a department it highlights in place (click again to clear).
+department; inside a department it highlights in place (click again to clear). The cards sit on their own panel so
+they read as separate from the table.
+
+**Search** (top right) finds departments, categories, and classes by name, products by title or vendor, and SKUs by
+variant ID or variant name. Picking a result works like a card: it opens the view that lists it and highlights the
+row (a product or SKU opens its class's product view). Products and SKUs are searched among stocked variants only,
+since those are the rows the product view shows.
 
 ## Running it
 
@@ -55,7 +61,8 @@ data/*.jsonl ──► scripts/prepare-data.ts ──► public/catalog.json ─
 | `src/catalog/extract.ts` | Raw Shopify JSON → slim catalog: pulls the metafields we need and normalizes hierarchy labels |
 | `src/catalog/availability.ts` | **Business rules**: what "available" means and which SKUs are in scope |
 | `src/catalog/rollup.ts` | Pure aggregation: filter by drill path, group by level or product, summarize |
-| `src/catalog/imbalance.ts` | Ranks categories by NV-only vs PA-only imbalance for the highlight cards |
+| `src/catalog/imbalance.ts` | Ranks categories by PA/NV imbalance on a pluggable measure, for the highlight cards |
+| `src/catalog/search.ts` | Builds the search index and ranks matches; each result knows the view and rows to highlight |
 | `src/useDrillPath.ts` | Drill path ↔ URL (`?department=…&category=…&class=…`), so back, refresh, and deep links work |
 | `src/components/*` | Presentation only: breakdown table, diverging bar, product table, breadcrumbs |
 
